@@ -1,0 +1,6 @@
+numpy==1.19.4
+cloudant==2.14.0
+Pillow==8.1.0
+protobuf==3.14.0
+google-cloud-vision
+google-cloud-automl
