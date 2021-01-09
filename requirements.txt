@@ -4,3 +4,4 @@ Pillow==8.1.0
 protobuf==3.14.0
 google-cloud-vision
 google-cloud-automl
+google-cloud-bigquery
