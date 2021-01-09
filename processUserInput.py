@@ -14,6 +14,7 @@ from cloudant import cloudant_iam
 import numpy as np
 from google.cloud import automl
 from google.cloud import vision
+from google.cloud import bigquery
 from PIL import Image, ImageOps
 import os, io, argparse
 
