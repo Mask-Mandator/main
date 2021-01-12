@@ -95,13 +95,12 @@ def is_wearing_mask(file_path):
 
 
 def get_crop_hint(path):
-    '''
-    Localize objects in the local image.
+    '''Localize objects in the local image.
 
     :param path: The path to the local image file.
     :type image_file: string
-    :rtype: NormalizedVertex
-    :return: Returns the normalized vertices [0,1] for the bounding of the hint (QRCode In This Instance)
+    :rtype: 2D List
+    :return: Returns the vertices for the bounding of the hint (Face)
     '''
 
     from google.cloud import vision
@@ -111,19 +110,20 @@ def get_crop_hint(path):
         content = image_file.read()
     image = vision.Image(content=content)
 
-    objects = client.object_localization(
-        image=image).localized_object_annotations
+    response = client.face_detection(image=image)
+    faces = response.face_annotations
 
-    for object_ in objects:
-        print(object_.name)
-        if(object_.name == "2D barcode"):
-            return object_.bounding_poly.normalized_vertices
+    for face in faces:
+
+        vertices = ([[vertex.x, vertex.y]
+            for vertex in face.bounding_poly.vertices])
+
+        return vertices
+
     return None;
 
-
 def crop_to_hint(image_file):
-    '''
-    Crops the image using the hints in the vector list.
+    '''Crops the image using the hints in the vector list.
 
     :param image_file: The path to the local image file.
     :type image_file: string
@@ -134,14 +134,18 @@ def crop_to_hint(image_file):
 
     vects = get_crop_hint(image_file)
 
+    if(vects is None):
+        im = Image.open(image_file)
+        im.save('output-crop.png','PNG')
+        return 
+
 
     im = Image.open(image_file)
     width, height = im.size
-    im2 = im.crop([vects[0].x * width - 10, vects[0].y * height - 10,
-                  vects[2].x * width + 10, vects[2].y * height + 10])
-                  
-    im2.save('output-crop.png', 'PNG')
+    im2 = im.crop([vects[0][0] -10, vects[0][1] - 10,
+                  vects[2][0] + 10, vects[2][1] + 10])
 
+    im2.save('output-crop.png', 'PNG')
 
 def main():
     '''
