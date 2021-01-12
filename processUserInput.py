@@ -21,6 +21,35 @@ import os, io, argparse
 project_id, model_id, DB_USERNAME, DB_API_KEY = API_LIST()
 
 
+# This string is used to query a student via ID number. Concatenate
+# with an id number at the end and run a query.
+
+QUERY_DEFAULT = """
+    SELECT * FROM `maskmandator-294920.purdue.purdue` WHERE id = 
+"""
+
+# Example of how to update num infractions using SQL query.
+
+'''
+SET numInfractions = '1'
+WHERE CustomerID = 1;
+'''
+
+def get_user_info_by_id(id):
+    '''
+    Retrieves row of data from a Google Cloud BigQuery DB for a student via an ID number.
+    
+    :params id: ID number to be queried.
+    :type id: Integer
+    :rtype: cloud.bigquery.job.query.QueryJob
+    :return: Returns a row pertaining to a student from a BigQuery database.
+    '''
+    
+    client = bigquery.Client()
+    query_job = client.query(QUERY_DEFAULT + id)
+    
+    return query_job
+
 
 def is_wearing_mask(file_path):
     '''
@@ -125,7 +154,7 @@ def main():
     # Gets and sets API Keys
     project_id, model_id, DB_USERNAME, DB_API_KEY = API_LIST()
     # Sets environment from Google Cloud Service Token
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'ServiceAccountToken_GoogleVision.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'MaskMandator-a0512b925076.json'
     
     #File Path for Image to be Processed
     file_path = "face.png"
