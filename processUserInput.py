@@ -136,7 +136,8 @@ def crop_to_hint(image_file):
 
     if(vects is None):
         im = Image.open(image_file)
-        im.save('output-crop.png','PNG')
+        im.save(image_file,'PNG')
+        fourier_transform(image_file)
         return 
 
 
@@ -145,7 +146,71 @@ def crop_to_hint(image_file):
     im2 = im.crop([vects[0][0] -10, vects[0][1] - 10,
                   vects[2][0] + 10, vects[2][1] + 10])
 
-    im2.save('output-crop.png', 'PNG')
+    im2.save(image_file, 'PNG')
+    fourier_transform(image_file)
+    
+
+
+
+def fourier_transform(file_path):
+    '''Converts an image to a the magnitude spectrum by using fourier transformations, applys a disk filter, and converts back to image
+
+    :params file_path: The path to the local image file.
+    :type file_path: string
+    :rtype: void
+
+    Saves the cropped image as a file
+    '''
+    import numpy as np
+    import cv2 
+    from matplotlib import pyplot as plt
+    from PIL import Image
+
+
+    img = cv2.imread(file_path,cv2.IMREAD_GRAYSCALE)
+    dft = cv2.dft(np.float32(img), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+
+    magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]))
+
+    rows, cols = img.shape
+    crow, ccol = int(rows / 2), int(cols / 2)  # center
+
+    # Concentric BPF mask,with are between the two cerciles as one's, rest all zero's.
+    rows, cols = img.shape
+    crow, ccol = int(rows / 2), int(cols / 2)
+
+    mask = np.zeros((rows, cols, 2), np.uint8)
+    r_out = 80
+    r_in = 5
+    center = [crow, ccol]
+    x, y = np.ogrid[:rows, :cols]
+
+    mask_area = np.logical_and(((x - center[0]) ** 2 + (y - center[1]) ** 2 >= r_in ** 2),
+                            ((x - center[0]) ** 2 + (y - center[1]) ** 2 <= r_out ** 2))
+    mask[mask_area] = 1
+
+    # apply mask@ext:ms-vscode-remote.remote-ssh,ms-vscode-remote.remote-ssh-edit config file and inverse DFT
+    fshift = dft_shift * mask
+
+    fshift_mask_mag = 2000 * np.log(cv2.magnitude(fshift[:, :, 0], fshift[:, :, 1]))
+
+    f_ishift = np.fft.ifftshift(fshift)
+    img_back = cv2.idft(f_ishift)
+    img_back = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
+
+
+
+    #cv2.imwrite(r"gray.bmp",img2)
+
+
+
+
+    plt.imshow(img_back, cmap='gray')
+    plt.axis('off')
+
+
+    plt.savefig(file_path, bbox_inches='tight', pad_inches = 0)
 
 def main():
     '''
@@ -154,14 +219,18 @@ def main():
     :rtype: string
     :return: An output string that describes whether the user is wearing a mask
     '''
+    
 
     # Gets and sets API Keys
     project_id, model_id, DB_USERNAME, DB_API_KEY = API_LIST()
     # Sets environment from Google Cloud Service Token
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'MaskMandator-a0512b925076.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'ServiceAccountToken_GoogleVision.json'
     
     #File Path for Image to be Processed
     file_path = "face.png"
+    crop_to_hint(file_path)
+
+    
     
     #Boolean that describes if the subject is wearing a mask (True for wearing mask or False for not wearing mask)
     wearingMark = is_wearing_mask(file_path)
