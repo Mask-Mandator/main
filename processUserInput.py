@@ -9,8 +9,6 @@ Created on Sat Nov  7 22:28:30 2020
 '''
 
 from API_KEYS import main as API_LIST
-from cloudant import cloudant
-from cloudant import cloudant_iam
 import numpy as np
 from google.cloud import automl
 from google.cloud import vision
@@ -47,11 +45,11 @@ def get_user_info_by_id(id):
     :rtype: cloud.bigquery.job.query.QueryJob
     :return: Returns a row pertaining to a student from a BigQuery database.
     '''
-    
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'ServiceAccountToken_GoogleVision.json'
     client = bigquery.Client()
     query_job = client.query(QUERY_DEFAULT + id)
     
-    return query_job
+    return query_job["name"], query_job["hasVaccine"]
 
 
 def is_wearing_mask(file_path):
@@ -240,15 +238,18 @@ def main():
     crop_to_hint(file_path)
 
     
-    
     #Boolean that describes if the subject is wearing a mask (True for wearing mask or False for not wearing mask)
     wearingMark = is_wearing_mask(file_path)
 
-    if(not wearingMark):
-        return("Please put on your mask! You have been penalized.")
+    name, vaccineStatus = get_user_info_by_id("1")
     
-    return("Access granted. Thank you, and stay safe!")
-
+    if(not wearingMark):
+        print("Please put on your mask {}! Try again.", name)
+    else:
+        if(vaccineStatus == "False"):
+            print("Access granted. Thank you {}, and stay safe! Please get COVID-19 vaccine when available.", name)
+        else:
+            print("Access granted. Thank you {}, and stay safe!", name)
 
         
 if __name__ == '__main__':
