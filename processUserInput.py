@@ -17,6 +17,9 @@ from google.cloud import vision
 from google.cloud import bigquery
 from PIL import Image, ImageOps
 import os, io, argparse
+from picamera import PiCamera
+from time import sleep
+
 
 project_id, model_id, DB_USERNAME, DB_API_KEY = API_LIST()
 
@@ -212,6 +215,12 @@ def fourier_transform(file_path):
 
     plt.savefig(file_path, bbox_inches='tight', pad_inches = 0)
 
+def take_picture():
+    camera = PiCamera()
+
+    sleep(2) #Allows brightness adjustment, makes camera quality better
+    camera.capture('/home/pi/Documents/main/face.png')
+
 def main():
     '''
     Takes a picture and determines if a person present in the image is wearing a mask
@@ -220,7 +229,7 @@ def main():
     :return: An output string that describes whether the user is wearing a mask
     '''
     
-
+    take_picture()
     # Gets and sets API Keys
     project_id, model_id, DB_USERNAME, DB_API_KEY = API_LIST()
     # Sets environment from Google Cloud Service Token
