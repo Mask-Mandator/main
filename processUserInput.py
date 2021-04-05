@@ -49,7 +49,7 @@ def get_user_info_by_id(id):
     client = bigquery.Client()
     query_job = client.query(QUERY_DEFAULT + id)
     
-    return query_job["name"], query_job["hasVaccine"]
+    return query_job["name"], query_job["hasVaccine"], query["numInfractions"]
 
 
 def is_wearing_mask(file_path):
@@ -241,15 +241,18 @@ def main():
     #Boolean that describes if the subject is wearing a mask (True for wearing mask or False for not wearing mask)
     wearingMark = is_wearing_mask(file_path)
 
-    name, vaccineStatus = get_user_info_by_id("1")
+    name, vaccineStatus, numInfractions = get_user_info_by_id("1")
     
     if(not wearingMark):
         print("Please put on your mask {}! Try again.", name)
     else:
-        if(vaccineStatus == "False"):
-            print("Access granted. Thank you {}, and stay safe! Please get COVID-19 vaccine when available.", name)
+        if(numInfractions > 2): # More than 3 infractions leads to disciplinary action
+            print("You have {} infractions on your account {}, please clear these up in the main office before entering.", numInfractions, name)
         else:
-            print("Access granted. Thank you {}, and stay safe!", name)
+            if(vaccineStatus == "False"):
+                print("Access granted. Thank you {}, and stay safe! Please get COVID-19 vaccine when available.", name)
+            else:
+                print("Access granted. Thank you {}, and stay safe!", name)
 
         
 if __name__ == '__main__':
