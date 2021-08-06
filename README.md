@@ -1,5 +1,7 @@
 # main
 
+https://mask-mandator.github.io/
+
 This is the main repository of the Mask-Mandator organization. It contains all of our functional code.
 
 Recipient of funding from COVID-19 hackathon fund by Google Cloud + mentorship.
